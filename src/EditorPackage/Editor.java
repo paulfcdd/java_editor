@@ -48,6 +48,7 @@ class EditorFrame extends JFrame {
     private JTextArea inputField;
     private Integer inputCharsNum;
     static private final String newline = "\n";
+    static private final String defaultTitle = "New file";
 
     public EditorFrame() {
         frame = this;
@@ -55,8 +56,6 @@ class EditorFrame extends JFrame {
         fileChooser = new JFileChooser();
         inputField = new JTextArea(20, 120);
         inputCharsNum = 0;
-
-        setTitle("Simple editor");
 
         JMenuBar menuBar = new JMenuBar();
 
@@ -118,6 +117,7 @@ class EditorFrame extends JFrame {
         setJMenuBar(menuBar);
         pack();
         countInputChars();
+        setTitle(defaultTitle);
         setVisible(true);
     }
 
@@ -128,6 +128,7 @@ class EditorFrame extends JFrame {
         } else {
             inputField.setText("");
             countInputChars();
+            frame.setTitle(defaultTitle);
         }
 
     }
@@ -145,6 +146,7 @@ class EditorFrame extends JFrame {
                     fileContent.append(sCurrentLine).append(newline);
                 }
                 inputField.setText(fileContent.toString());
+                frame.setTitle(file.getName());
                 countInputChars();
             } catch (IOException ex) {
 
@@ -163,6 +165,7 @@ class EditorFrame extends JFrame {
                 writer.write(data);
                 writer.flush();
                 countInputChars();
+                frame.setTitle(file.getName());
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());
             }
