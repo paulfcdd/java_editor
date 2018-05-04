@@ -55,6 +55,8 @@ class EditorFrame extends JFrame {
         JMenu file = new JMenu("File");
         menuBar.add(file);
 
+        JMenuItem open = new JMenuItem("Open");
+
         JMenuItem save = new JMenuItem("Save");
         file.add(save);
 
@@ -98,9 +100,10 @@ class EditorFrame extends JFrame {
         JFileChooser fileChooser = new JFileChooser();
         Integer saveDialog = fileChooser.showSaveDialog(frame);
         if (saveDialog == JFileChooser.APPROVE_OPTION) {
+
             File file = fileChooser.getSelectedFile();
-            String fileName = file.getName();
             String filePath = file.getAbsolutePath();
+
             try(FileWriter writer = new FileWriter(filePath, false)){
                 writer.write(data);
                 writer.flush();
