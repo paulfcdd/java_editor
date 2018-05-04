@@ -1,11 +1,14 @@
 package EditorPackage;
 
+import EditorPackage.Dialogs.Dialogs;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.*;
 
 public class Editor {
 
@@ -38,9 +41,12 @@ public class Editor {
 class EditorFrame extends JFrame {
 
     private JFrame frame;
+    private Dialogs dialogs;
+    static private final String newline = "\n";
 
     public EditorFrame() {
         frame = this;
+        dialogs = new Dialogs();
 
         setTitle("Simple editor");
 
@@ -49,17 +55,27 @@ class EditorFrame extends JFrame {
         JMenu file = new JMenu("File");
         menuBar.add(file);
 
+        JMenuItem save = new JMenuItem("Save");
+        file.add(save);
+
         JMenuItem exit = new JMenuItem("Exit");
         file.add(exit);
 
         JTextArea inputField = new JTextArea(20, 120);
         add(inputField);
 
+        save.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveFile(inputField.getText());
+            }
+        });
+
         exit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String inputData = inputField.getText();
-                checkInputData(inputData);
+                checkInputDataOnExit(inputData);
             }
         });
 
@@ -69,7 +85,7 @@ class EditorFrame extends JFrame {
             public void windowClosing(WindowEvent e)
             {
                 String inputData = inputField.getText();
-                checkInputData(inputData);
+                checkInputDataOnExit(inputData);
             }
         });
 
@@ -78,21 +94,34 @@ class EditorFrame extends JFrame {
         setVisible(true);
     }
 
-    private Integer YesNoCancelDialog(String modalMessage, String modalTitle, Integer mesageType, Icon icon, Object[] options, Object initValue) {
-        return JOptionPane.showOptionDialog(frame, modalMessage, modalTitle, JOptionPane.YES_NO_CANCEL_OPTION, mesageType, icon, options, initValue);
-    }
-
     private void saveFile(String data) {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.showSaveDialog(frame);
+        Integer saveDialog = fileChooser.showSaveDialog(frame);
+        if (saveDialog == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            String fileName = file.getName();
+            String filePath = file.getAbsolutePath();
+            try(FileWriter writer = new FileWriter(filePath, false)){
+                writer.write(data);
+                writer.flush();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+
+            System.out.println("Saving: " + file.getName() + "." + newline);
+            System.out.println("Path: " + file.getAbsolutePath() + "." + newline);
+        } else {
+            System.out.println("Save command cancelled by user." + newline);
+
+        }
     }
 
-    private void checkInputData(String inputData) {
+    private void checkInputDataOnExit(String inputData) {
         if (inputData.length() == 0) {
             System.exit(0);
         } else {
             Object[] options = {"Yes", "No", "Cancel"};
-            Integer confirmClose = YesNoCancelDialog("Document was changed. Do you want to save it?", "Do you want to leave?", JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
+            Integer confirmClose = dialogs.YesNoCancelDialog(frame,"Document was changed. Do you want to save it?", "Do you want to leave?", JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
             //0 - yes, 1 - no
             switch (confirmClose) {
                 case 0:
