@@ -9,6 +9,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Editor {
 
@@ -42,20 +44,29 @@ class EditorFrame extends JFrame {
 
     private JFrame frame;
     private Dialogs dialogs;
+    private JFileChooser fileChooser;
+    private JTextArea inputField;
+    private Integer inputCharsNum;
     static private final String newline = "\n";
+    static private final String defaultTitle = "New file";
 
     public EditorFrame() {
         frame = this;
         dialogs = new Dialogs();
-
-        setTitle("Simple editor");
+        fileChooser = new JFileChooser();
+        inputField = new JTextArea(20, 120);
+        inputCharsNum = 0;
 
         JMenuBar menuBar = new JMenuBar();
 
         JMenu file = new JMenu("File");
         menuBar.add(file);
 
+        JMenuItem newFile = new JMenuItem("New");
+        file.add(newFile);
+
         JMenuItem open = new JMenuItem("Open");
+        file.add(open);
 
         JMenuItem save = new JMenuItem("Save");
         file.add(save);
@@ -63,8 +74,22 @@ class EditorFrame extends JFrame {
         JMenuItem exit = new JMenuItem("Exit");
         file.add(exit);
 
-        JTextArea inputField = new JTextArea(20, 120);
+        inputField = new JTextArea(20, 120);
         add(inputField);
+
+        newFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                newFile();
+            }
+        });
+
+        open.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openFile();
+            }
+        });
 
         save.addActionListener(new ActionListener() {
             @Override
@@ -81,11 +106,9 @@ class EditorFrame extends JFrame {
             }
         });
 
-        addWindowListener(new WindowAdapter()
-        {
+        addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e)
-            {
+            public void windowClosing(WindowEvent e) {
                 String inputData = inputField.getText();
                 checkInputDataOnExit(inputData);
             }
@@ -93,38 +116,74 @@ class EditorFrame extends JFrame {
 
         setJMenuBar(menuBar);
         pack();
+        countInputChars();
+        setTitle(defaultTitle);
         setVisible(true);
     }
 
-    private void saveFile(String data) {
-        JFileChooser fileChooser = new JFileChooser();
-        Integer saveDialog = fileChooser.showSaveDialog(frame);
-        if (saveDialog == JFileChooser.APPROVE_OPTION) {
+    private void newFile() {
 
+        if (inputField.getText().length() != inputCharsNum) {
+            saveFile(inputField.getText());
+        } else {
+            inputField.setText("");
+            countInputChars();
+            frame.setTitle(defaultTitle);
+        }
+
+    }
+
+    private void openFile() {
+        Integer openDialog = fileChooser.showOpenDialog(frame);
+        StringBuilder fileContent = new StringBuilder();
+
+        if (openDialog == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+
+            try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+                String sCurrentLine;
+                while ((sCurrentLine = bufferedReader.readLine()) != null) {
+                    fileContent.append(sCurrentLine).append(newline);
+                }
+                inputField.setText(fileContent.toString());
+                frame.setTitle(file.getName());
+                countInputChars();
+            } catch (IOException ex) {
+
+                System.out.println(ex.getMessage());
+            }
+        }
+    }
+
+    private void saveFile(String data) {
+        Integer saveDialog = fileChooser.showSaveDialog(frame);
+
+        if (saveDialog == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             String filePath = file.getAbsolutePath();
-
-            try(FileWriter writer = new FileWriter(filePath, false)){
+            try (FileWriter writer = new FileWriter(filePath, false)) {
                 writer.write(data);
                 writer.flush();
+                countInputChars();
+                frame.setTitle(file.getName());
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());
             }
 
-            System.out.println("Saving: " + file.getName() + "." + newline);
-            System.out.println("Path: " + file.getAbsolutePath() + "." + newline);
-        } else {
-            System.out.println("Save command cancelled by user." + newline);
-
         }
+
+    }
+
+    private void countInputChars() {
+        inputCharsNum = inputField.getText().length();
     }
 
     private void checkInputDataOnExit(String inputData) {
-        if (inputData.length() == 0) {
+        if (inputData.length() == inputCharsNum) {
             System.exit(0);
         } else {
             Object[] options = {"Yes", "No", "Cancel"};
-            Integer confirmClose = dialogs.YesNoCancelDialog(frame,"Document was changed. Do you want to save it?", "Do you want to leave?", JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
+            Integer confirmClose = dialogs.YesNoCancelDialog(frame, "Document was changed. Do you want to save it?", "Do you want to leave?", JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
             //0 - yes, 1 - no
             switch (confirmClose) {
                 case 0:
