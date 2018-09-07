@@ -9,11 +9,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
+
+/**
+ * Editor main class
+ */
 public class Editor {
 
+    /**
+     * Editor constructor with no params
+     */
     public Editor() {
 
     }
@@ -40,6 +45,9 @@ public class Editor {
 
 }
 
+/**
+ *
+ */
 class EditorFrame extends JFrame {
 
     private JFrame frame;
@@ -62,17 +70,10 @@ class EditorFrame extends JFrame {
         JMenu file = new JMenu("File");
         menuBar.add(file);
 
-        JMenuItem newFile = new JMenuItem("New");
-        file.add(newFile);
-
-        JMenuItem open = new JMenuItem("Open");
-        file.add(open);
-
-        JMenuItem save = new JMenuItem("Save");
-        file.add(save);
-
-        JMenuItem exit = new JMenuItem("Exit");
-        file.add(exit);
+        JMenuItem newFile   =   this.addItemToMenu("New", file);
+        JMenuItem openFile  =   this.addItemToMenu("Open", file);
+        JMenuItem saveFile  =   this.addItemToMenu("Save", file);
+        JMenuItem exit      =   this.addItemToMenu("Exit", file);
 
         inputField = new JTextArea(20, 120);
         add(inputField);
@@ -84,14 +85,14 @@ class EditorFrame extends JFrame {
             }
         });
 
-        open.addActionListener(new ActionListener() {
+        openFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 openFile();
             }
         });
 
-        save.addActionListener(new ActionListener() {
+        saveFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 saveFile(inputField.getText());
@@ -198,5 +199,12 @@ class EditorFrame extends JFrame {
         }
     }
 
+    private JMenuItem addItemToMenu(String itemName, JMenu menu)
+    {
+        JMenuItem newItem = new JMenuItem(itemName);
+        menu.add(newItem);
+
+        return newItem;
+    }
 
 }
